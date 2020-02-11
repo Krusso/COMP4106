@@ -54,7 +54,7 @@ public class GameBoardState {
 					this.board[i][j] = BoardPiece.BLANK;
 				}
 			}
-			this.board[1][6] = BoardPiece.MOUSE;
+			this.board[1][7] = BoardPiece.MOUSE;
 			this.board[6][2] = BoardPiece.CAT;
 			this.board[1][8] = BoardPiece.CHEESE;
 			this.board[6][8] = BoardPiece.CHEESE;
@@ -62,7 +62,7 @@ public class GameBoardState {
 			cheese.add(new Point(8, 1));
 			cheese.add(new Point(8, 6));
 			cheese.add(new Point(6, 10));
-			mouse = new Point(6, 1);
+			mouse = new Point(7, 1);
 			cat = new Point(2, 6);
 		}
 	}

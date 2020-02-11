@@ -28,7 +28,7 @@ public class Main {
 		m.put(0, new Integer[] { 0, 1 });
 		MOUSE_ANGLE_MOVESET_MAP = Collections.unmodifiableMap(m);
 	};
-	public static final Integer[][] CAT_MOVESET = { { -2, -1 }, { -2, 1 }, { -1, -2 }, { -1, -2 }, { 1, -2 }, { 1, 2 },
+	public static final Integer[][] CAT_MOVESET = { { -2, -1 }, { -2, 1 }, { -1, -2 }, { -1, 2 }, { 1, -2 }, { 1, 2 },
 			{ 2, -1 }, { 2, 1 } };
 
 	public static Double EuclideanDistance(Point p1, Point p2) {
@@ -151,7 +151,6 @@ public class Main {
 					}
 					GameBoardState nextState = new GameBoardState(currentState, currentState.boardSize, b,cat,mouse,cheese);
 					
-					
 					Point catPos = new Point(currentState.cat.x + move[1], currentState.cat.y + move[0]);
 					//If the cat position ans the mouse position are equal, we have found the solution
 
@@ -195,7 +194,6 @@ public class Main {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		Pair<Integer, Integer> p = new Pair<>(0, 1);
 		GameBoardState start = new GameBoardState();
 		start.init();
 //		start.display();
