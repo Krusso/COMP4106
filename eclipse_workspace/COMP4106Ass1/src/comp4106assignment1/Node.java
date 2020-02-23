@@ -1,3 +1,4 @@
+package comp4106assignment1;
 
 public class Node {
 	

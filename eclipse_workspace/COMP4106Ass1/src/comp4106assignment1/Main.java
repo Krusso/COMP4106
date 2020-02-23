@@ -1,3 +1,4 @@
+package comp4106assignment1;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
