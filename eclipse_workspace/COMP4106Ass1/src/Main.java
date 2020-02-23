@@ -1,189 +1,42 @@
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
 public class Main {
-	// Movesets for a mouse
-	public static final Integer[][] MOUSE_MOVESET = { { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 1 }, { 1, -1 },
-			{ 1, 0 }, { 1, 1 } };
-	public static final Map<Integer, Integer[]> MOUSE_ANGLE_MOVESET_MAP;
-	static {
-		Map<Integer, Integer[]> m = new HashMap<>();
-		m.put(-135, new Integer[] { -1, -1 });
-		m.put(-90, new Integer[] { -1, 0 });
-		m.put(-45, new Integer[] { -1, 1 });
-		m.put(-180, new Integer[] { 0, -1 });
-		m.put(180, new Integer[] { 0, -1 });
-		m.put(135, new Integer[] { 1, -1 });
-		m.put(90, new Integer[] { 1, 0 });
-		m.put(45, new Integer[] { 1, 1 });
-		m.put(0, new Integer[] { 0, 1 });
-		MOUSE_ANGLE_MOVESET_MAP = Collections.unmodifiableMap(m);
-	};
-	public static final Integer[][] CAT_MOVESET = { { -2, -1 }, { -2, 1 }, { -1, -2 }, { -1, 2 }, { 1, -2 }, { 1, 2 },
-			{ 2, -1 }, { 2, 1 } };
 
-	public static Double EuclideanDistance(Point p1, Point p2) {
-//		System.out.println("point1: "+p1);
-//		System.out.println("point2: " +p2);
-		double dx = p2.x - p1.x;
-		double dy = p2.y - p1.y;
 
-//		System.out.println("dx: "+dx+ " dy " + dy);
-		return Math.sqrt(dx * dx + dy * dy);
-	}
 
-	public static Point getClosestCheese(Point mouse, List<Point> cheese) {
-		Point closest = cheese.get(0);
-		Double curr = EuclideanDistance(mouse, cheese.get(0));
-		for (Point c : cheese) {
-//			System.out.println("Mouse " + mouse);
-//			System.out.println("Cheese " + c);
-			Double d = EuclideanDistance(mouse, c);
-//			System.out.println(d);
-			if (d < curr) {
-				closest = c;
-			}
-			
-		}
-//		System.out.println("closest " + closest);
-		
-		return closest;
-	}
-
-	public static Point nextMouseMove(Point mouse, Point cheese) {
-		Double dx = (double) (cheese.x - mouse.x);
-		Double dy = (double) (cheese.y - mouse.y);
-		Double angle = Math.atan2(dy, dx);
-		angle = 180/Math.PI * angle;
-//		 round angle to nearest orientation
-		Integer rounded_angle = (int) (Math.round(angle/45) * 45);
-		Integer[] mouseMove = MOUSE_ANGLE_MOVESET_MAP.get(rounded_angle);
-		Point newPoint= new Point(mouse.x + mouseMove[1], mouse.y + mouseMove[0]);
-//		Point newPoint = null;
-		
-//		if (dx == 0) {
-//			if (dy > 0) {
-//				newPoint = new Point(mouse.x, mouse.y + 1);
-//			} else if (dy < 0) {
-//				newPoint = new Point(mouse.x, mouse.y - 1);
-//			}
-//		} else if (dy == 0) {
-//			if (dx > 0) {
-//				newPoint = new Point(mouse.x + 1, mouse.y);
-//			} else if (dx < 0) {
-//				newPoint = new Point(mouse.x - 1, mouse.y);
-//			}
-//		} else if (dy / dx > 0) {
-//			if (dy < 0 && dx < 0) {
-//				newPoint = new Point(mouse.x - 1, mouse.y - 1);
-//			} else if (dy > 0 && dx > 0){
-//				newPoint = new Point(mouse.x + 1, mouse.y + 1);
-//			}
-//		}else if (dy / dx < 0) {
-//			if (dy < 0) {
-//				newPoint = new Point(mouse.x + 1, mouse.y - 1);
-//			} else if (dx < 0){
-//				newPoint = new Point(mouse.x - 1, mouse.y + 1);
-//			}
-//		}
-
-		return newPoint;
-	}
-
-	public static Boolean isValidMove(Point cat, Integer[] move, Integer boardSize) {
-		Integer y = cat.y+move[0];
-		Integer x = cat.x+move[1];
-//		System.out.println("isValue " + y + " " + x );
-		if ((y < 0) || (y > boardSize-1) || (x < 0) || (x > boardSize-1)) {
-			return false;
-		}
-		return true;
-	}
-
-	public static LinkedList<GameBoardState> BFS(GameBoardState start) {
-		
-		Queue<GameBoardState> q = new LinkedList<>();
-		q.add(start);
-		Integer iteration = 0;
-		GameBoardState solution = null;
-		LinkedList<GameBoardState> moves = new LinkedList<>();
-		while (solution == null) {
-//			System.out.println(String.format("Iteration %d", iteration));
-			GameBoardState currentState = q.poll();
-			
-			if (currentState == null) {
-				System.out.println("Finished.");
-				solution = currentState;
-				break;
-			}
-			
-//			currentState.display();
-			Point closestCheese = getClosestCheese(currentState.mouse, currentState.cheese);
-//			System.out.println(closestCheese);
-			Point newMousePosition = nextMouseMove(currentState.mouse, closestCheese);
-			// Add all possible moves that the cat can perform and populate the queue with
-			// the new states
-			for (Integer[] move : CAT_MOVESET) {
-				if (isValidMove(currentState.cat, move, currentState.boardSize)) {
-					
-//					GameBoardState nextState = GameBoardState.deepCopy(currentState);
-					//Create the new instance state
-					BoardPiece[][] b = new BoardPiece[currentState.boardSize][currentState.boardSize];
-					for(int i = 0 ; i < currentState.boardSize ; i++) {
-						for(int j = 0 ; j < currentState.boardSize; j++) {
-							b[i][j] = currentState.board[i][j];
-						}
-					}
-					Point cat = (Point) currentState.cat.clone();
-					Point mouse = (Point) currentState.mouse.clone();
-					List<Point> cheese = new ArrayList<Point>();
-					for(Point c : currentState.cheese) {
-						cheese.add(c);
-					}
-					GameBoardState nextState = new GameBoardState(currentState, currentState.boardSize, b,cat,mouse,cheese);
-					
-					Point catPos = new Point(currentState.cat.x + move[1], currentState.cat.y + move[0]);
-					//If the cat position ans the mouse position are equal, we have found the solution
-
-//					System.out.println(catPos.y  + " " + catPos.x);
-					nextState.updateMouse(newMousePosition);
-					nextState.updateCat(catPos);
-					if(catPos.equals(newMousePosition)) {
-						solution = nextState;
-						break;
-					}
-				
-					q.add(nextState);
-				}
-			}
-			iteration++;
-//			currentState.display();
-		}
-		System.out.println("Number of iterations/expansions " + iteration);
-		
-		
-		// Add the solution moves for the cat into a queue.
-		while(solution!=null) {
-			moves.add(solution);
-			solution = solution.parent;
-//			System.out.println(solution.parent);
-		}
-		
-		return moves;
-	}
-	
 	public static void runBFS(LinkedList<GameBoardState> sol) {
-		Integer step  = 1;
-		while(!sol.isEmpty()) {
+		LinkedList<GameBoardState> gameSequence = new LinkedList<GameBoardState>();
+		ArrayList<Point> catMoves = new ArrayList<Point>();
+		while (!sol.isEmpty()) {
+			GameBoardState s = sol.pollLast();
+			gameSequence.add(s);
+			catMoves.add(s.cat);
+		}
+		Integer step = 0;
+		System.out.println("Cat Moves sequence: " + catMoves);
+		while (!gameSequence.isEmpty()) {
+			GameBoardState s = gameSequence.poll();
+			System.out.println("Step: " + step);
+			s.display();
+			step++;
+		}
+	}
+
+	public static void runDFS(LinkedList<GameBoardState> sol) {
+		Integer step = 0;
+		while (!sol.isEmpty()) {
 			GameBoardState s = sol.pollLast();
 			System.out.println("Step: " + step);
 			s.display();
@@ -191,23 +44,199 @@ public class Main {
 		}
 	}
 	
+	public static void runAStar(LinkedList<GameBoardState> sol) {
+		Integer step = 0;
+		while (!sol.isEmpty()) {
+			GameBoardState s = sol.pollLast();
+			System.out.println("Step: " + step);
+			s.display();
+			step++;
+		}
+	}	
+	
+	public static void runSearch(LinkedList<GameBoardState> sol) {
+		LinkedList<GameBoardState> gameSequence = new LinkedList<GameBoardState>();
+		ArrayList<Point> catMoves = new ArrayList<Point>();
+		while (!sol.isEmpty()) {
+			GameBoardState s = sol.pollLast();
+			gameSequence.add(s);
+			catMoves.add(s.cat);
+		}
+		Integer step = 0;
+		System.out.println("Cat Moves sequence: " + catMoves);
+		while (!gameSequence.isEmpty()) {
+			GameBoardState s = gameSequence.poll();
+			System.out.println("Step: " + step);
+			s.display();
+			step++;
+		}
+	}
+	
+	public static void defaultBoardStateTest() {
+		GameBoardState start = new GameBoardState();
+		start.init(true, 12);
+//		start.init(false, 30);
+		System.out.println("START BOARD:");
+		start.display();
+		System.out.println("SEARCHING...");
+		
+		Agent agent = new Agent();
+//		System.out.println("BFS Solution");
+//		LinkedList<GameBoardState> solutionBFS = agent.BFS(start);
+//		System.out.println("Total steps: " + (solutionBFS.size()-1));
+//		runSearch(solutionBFS);
+//		System.out.println("DFS Solution");
+//		LinkedList<GameBoardState> solutionDFS = agent.DFS(start);
+//		System.out.println("Total steps: " + (solutionDFS.size()-1));
+//		runSearch(solutionDFS);
+//		
+		System.out.println("Euclidean Distance 1 Solution");
+		LinkedList<GameBoardState> solution1 = agent.AStarSearch(start, "EuclideanDistance1");
+		System.out.println("Number of Iterations: "+agent.getNumIterations()+ " Total steps: " + (solution1.size()-1));
+		runSearch(solution1);
+		
+		System.out.println("Euclidean Distance 2 Solution");
+		LinkedList<GameBoardState> solution2 = agent.AStarSearch(start, "EuclideanDistance2");
+		System.out.println("Number of Iterations: "+agent.getNumIterations()+ " Total steps: " + (solution2.size()-1));
+		runSearch(solution2);
 
+		System.out.println("Average Euclidean Distance Solution");
+		LinkedList<GameBoardState> solution3 = agent.AStarSearch(start, "EuclideanDistanceAverage");
+		System.out.println("Number of Iterations: "+agent.getNumIterations()+ " Total steps: " + (solution3.size()-1));
+		runSearch(solution3);		
+	}
+	
+	public static Double average(int [] arr) {
+		Double avg = 0.0;
+		int length = arr.length;
+		for(int x: arr) {
+			avg += x;
+		}
+		return avg/length;
+	}
+	public static Double standardDeviation(int [] arr, double avg) {
+		Double std = 0.0;
+		int length = arr.length;
+		for(int x: arr) {
+			std += (x - avg)*(x - avg);
+		}
+		std  = std/length;
+		return Math.sqrt(std);
+	}
+
+	public static void averageSearch(String searchType, List<GameBoardState> states) {
+//		List<GameBoardState> states = GameBoardState.generateStates(numTrials, 12);
+		int numTrials = states.size();
+		int [] iterations = new int[numTrials];
+		int [] moves = new int[numTrials];
+		double avg = 0.0;
+		double std = 0.0;
+
+		Agent agent = new Agent();
+		for (int i = 0 ; i < numTrials; i++) {
+			LinkedList<GameBoardState> solution;
+			if(searchType.equals("BFS")) {
+				solution = agent.BFS(states.get(i));
+				
+			}else if(searchType.equals("DFS")) {
+				solution = agent.DFS(states.get(i));
+				
+			}
+			else {
+				solution = agent.AStarSearch(states.get(i), searchType);
+			}
+			iterations[i] = agent.getNumIterations();
+			moves[i] = solution.size();
+		}
+		
+		
+		System.out.println(searchType+ ": Average number of iterations - " + average(iterations) + " \tstd - " + standardDeviation(iterations, average(iterations)));
+		System.out.println(searchType+ ": Average number of moves - " + average(moves) + " \tstd - " + standardDeviation(moves, average(moves)));
+		
+	}
+	
+	public static void avgBFSandDFS() {
+		int numTrials = 5;
+		int [] iterations = new int[numTrials];
+		double avg = 0.0;
+		double std = 0.0;
+
+		Agent agent = new Agent();
+		for (int i = 0 ; i < numTrials; i++) {
+			GameBoardState  start = new GameBoardState();
+//			start.init(true, 12);
+			start.init(false, 12);
+			LinkedList<GameBoardState> solution = agent.BFS(start);
+			iterations[i] = agent.getNumIterations();
+			runSearch(solution);
+		}
+		
+		for (int x : iterations) {
+			avg += x;
+		}
+		avg /= numTrials;
+		for (int x : iterations) {
+			std += Math.pow((x - avg), 2);
+		}
+		std = Math.sqrt(std/numTrials);
+		
+		System.out.println("Average number of iterations: " + avg + " std: " + std);
+		
+	}
+
+
+	/**
+	 * Questions
+	 * Which search worked best? 
+	 * The A star search worked best on the 12x12 default board.  Using the heuristic 1
+	 * 
+	 * Which heuristics did you use? 
+	 * Euclidean Distance between curr c and m
+	 * Euclidean Distance between curr c and predicted m
+	 * Average of above
+	 * 
+	 * Why did you choose these heuristics?
+	 * Because simple and intuitive
+	 * 
+	 * Does the combination of the two heuristics work better or worse than they do individually
+	 * Worse. H1 worked best
+	 * 
+	 * How well do the searches work if you increase the size of the board to 30x30, 50x50
+	 * The average heuristic seems to work best in terms of finding a better solution
+	 * while h1 is fastest at finding a solution
+	 * the DFS takes exponentially longer to find solutions
+	 * and BFS is also extremely bad at finding the optimal solution
+	 * 
+	 * How many nodes are searched for each of hte searches on average with respective deviation
+	 * For the default board size of 12 on 5 randomly generated boards we have
+	 *  On average BFS took 333 std~533
+	 *  			DFS took 3353 std~ 6000
+	 *  			H1 took 195 std~  309
+	 *  			H2 took 363  std~ 584
+	 *  			H_avg took 251 std~ 374
+	 * 
+	 * What is the average number of moves required for each type of search with respeictve deviation?
+	 * For the same board we found in the above question
+	 * On average BFS took 5.0 moves ~ 1.414
+	 * 			  DFS took 15.0 moves ~ 4.56
+	 * 			  H1 took  5.4 moves ~ 1.62
+	 * 			  H2 took 5.4 moves ~ 1.62
+	 * 			
+	 * Which search works best if you increase speed of mouse to two steps per turn? 3 steps?
+	 * If the mouse moves 2 steps per turn, h2 works best.
+	 * If the mouse moves 3 steps per turn, h2 is still the best. in terms of finding the quickest solution
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-		GameBoardState start = new GameBoardState();
-		start.init();
-//		start.display();
-//		System.out.println(start.cheese);
-//		Point closestCheese = getClosestCheese(start.mouse, start.cheese);
-
-//		System.out.println(closestCheese);
-//		Point newMouse = nextMouseMove(start.mouse, closestCheese);
-
-//		System.out.println(String.format("Current Mouse: %s, Next Position Mouse: %s", start.mouse, newMouse));
-//		start.board[newMouse.y][newMouse.x] = BoardPiece.MOUSE;
-//		start.display();
-		LinkedList<GameBoardState> solution = BFS(start);
-		runBFS(solution);
+//		defaultBoardStateTest();
+		List<GameBoardState> states = GameBoardState.generateStates(5, 12);
+		averageSearch("BFS", states);
+		averageSearch("DFS", states);
+		averageSearch("EuclideanDistance1", states);
+		averageSearch("EuclideanDistance2", states);
+		averageSearch("EuclideanDistanceAverage", states);
+//		avgBFSandDFS();
 	}
 
 }
